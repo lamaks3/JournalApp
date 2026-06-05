@@ -11,25 +11,32 @@ import Combine
 
 struct ContentView: View {
     @State private var isUnlocked = false
+    @State var showAddEntry: Bool = false
     var body: some View {
-        if isUnlocked {
-            TabView {
-                Tab("Journal", systemImage: "book") {
-                        Text("asad")
+        VStack{
+            if isUnlocked {
+                TabView {
+                    Tab("Journal", systemImage: "book") {
+                        Button("Add entry") {
+                            showAddEntry.toggle()
+                        }
                     }
 
-                Tab("Settings", systemImage: "gear") {
-                    SettingsView(isUnlocked: $isUnlocked)
+                    Tab("Settings", systemImage: "gear") {
+                        SettingsView(isUnlocked: $isUnlocked)
+                    }
+                }
+            } else {
+                if KeychainService().isPINSet() {
+                    EnterPinView(isUnlocked: $isUnlocked)
+                } else {
+                    CreatePINView(isUnlocked: $isUnlocked)
                 }
             }
-        } else {
-            if KeychainService().isPINSet() {
-                EnterPinView(isUnlocked: $isUnlocked)
-            } else {
-                CreatePINView(isUnlocked: $isUnlocked)
-            }
         }
-
+        .sheet(isPresented: $showAddEntry) {
+            AddEntryView()
+        }
     }
 }
 
@@ -121,6 +128,37 @@ class KeychainService {
     }
 }
 
+struct AddEntryView: View {
+    @SceneStorage("title") var title = ""
+    @SceneStorage("content") var content = ""
+
+    @Environment(\.dismiss) var dismiss
+    var body: some View {
+        NavigationStack {
+            Form {
+                TextField("Title", text: $title)
+                TextEditor(text: $content)
+            }
+            .navigationTitle("New Entry")
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") {
+                        title = ""
+                        content = ""
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
 #Preview {
     ContentView()
 }
+
