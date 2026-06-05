@@ -6,18 +6,25 @@
 //
 
 import SwiftUI
+import KeychainAccess
 
 struct ContentView: View {
+    @State private var isUnlocked = false
     var body: some View {
-        TabView {
-            Tab("Journal", systemImage: "book") {
-                    Text("asad")
-                }
+        if isUnlocked {
+            TabView {
+                Tab("Journal", systemImage: "book") {
+                        Text("asad")
+                    }
 
-            Tab("Settings", systemImage: "gear") {
-                SettingsView()
+                Tab("Settings", systemImage: "gear") {
+                    SettingsView()
+                }
             }
+        } else {
+            EnterPinView(isUnlocked: $isUnlocked)
         }
+
     }
 }
 
@@ -37,6 +44,42 @@ struct SettingsView: View {
                 }
             }
         }
+    }
+}
+
+struct EnterPinView: View {
+    @State var pinCode = ""
+    @Binding var isUnlocked: Bool
+
+    func checkPIN() {
+        if KeychainService().checkPIN(pinCode) {
+            isUnlocked = true
+        }
+    }
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Enter your PIN code")
+            TextField("PIN", text: $pinCode)
+            Button(action: checkPIN) {
+                Text("Check PIN")
+            }
+        }
+    }
+}
+
+class KeychainService {
+    let keychain = Keychain(service: "com.yourname.SecretJournal")
+
+    func setPIN(_ pin: String) {
+        keychain["userPIN"] = pin
+    }
+
+    func checkPIN(_ pin: String) -> Bool {
+        keychain["userPIN"] == pin
+    }
+
+    init () {
+        keychain["userPIN"] = "1234"
     }
 }
 

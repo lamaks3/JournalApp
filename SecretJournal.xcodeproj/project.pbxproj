@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		BF6164EC2FD2EB1D00CF86D6 /* KeychainAccess in Frameworks */ = {isa = PBXBuildFile; productRef = BF6164EB2FD2EB1D00CF86D6 /* KeychainAccess */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		BF6164C12FD2DBDD00CF86D6 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -52,6 +56,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BF6164EC2FD2EB1D00CF86D6 /* KeychainAccess in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +83,7 @@
 				BF6164B52FD2DBDC00CF86D6 /* SecretJournal */,
 				BF6164C32FD2DBDD00CF86D6 /* SecretJournalTests */,
 				BF6164CD2FD2DBDD00CF86D6 /* SecretJournalUITests */,
+				BF6164EA2FD2EB1D00CF86D6 /* Frameworks */,
 				BF6164B42FD2DBDC00CF86D6 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -90,6 +96,13 @@
 				BF6164CA2FD2DBDD00CF86D6 /* SecretJournalUITests.xctest */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		BF6164EA2FD2EB1D00CF86D6 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -112,6 +125,7 @@
 			);
 			name = SecretJournal;
 			packageProductDependencies = (
+				BF6164EB2FD2EB1D00CF86D6 /* KeychainAccess */,
 			);
 			productName = SecretJournal;
 			productReference = BF6164B32FD2DBDC00CF86D6 /* SecretJournal.app */;
@@ -592,6 +606,14 @@
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		BF6164EB2FD2EB1D00CF86D6 /* KeychainAccess */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BF6164E92FD2E98C00CF86D6 /* XCRemoteSwiftPackageReference "KeychainAccess" */;
+			productName = KeychainAccess;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = BF6164AB2FD2DBDC00CF86D6 /* Project object */;
 }
