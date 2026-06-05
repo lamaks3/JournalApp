@@ -8,6 +8,7 @@
 import SwiftUI
 import KeychainAccess
 import Combine
+import PhotosUI
 
 struct ContentView: View {
     @State private var isUnlocked = false
@@ -129,6 +130,8 @@ class KeychainService {
 }
 
 struct AddEntryView: View {
+    @State private var selectedItem: PhotosPickerItem?
+    @State private var selectedImage: UIImage?
     @SceneStorage("title") var title = ""
     @SceneStorage("content") var content = ""
 
@@ -138,6 +141,18 @@ struct AddEntryView: View {
             Form {
                 TextField("Title", text: $title)
                 TextEditor(text: $content)
+                Section {
+                    PhotosPicker(selection: $selectedItem, matching: .images) {
+                        Label("Select Photo", systemImage: "photo")
+                    }
+
+                    if let image = selectedImage {
+                        Image(uiImage: image)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(height: 200)
+                    }
+                }
             }
             .navigationTitle("New Entry")
             .toolbar {
@@ -148,13 +163,52 @@ struct AddEntryView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
-                        title = ""
-                        content = ""
-                        dismiss()
+                        if let image = selectedImage {
+                            title = ""
+                            content = ""
+                            print(ImageManager.saveImage(image))
+                            dismiss()
+                        }
+                    }
+                }
+            }
+            .onChange(of: selectedItem) { _, newItem in
+                Task {
+                    if let data = try? await newItem?.loadTransferable(type: Data.self),
+                       let uiImage = UIImage(data: data) {
+                        selectedImage = uiImage
                     }
                 }
             }
         }
+    }
+}
+
+class ImageManager {
+    static let documentsDirectory = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+
+    static func saveImage(_ image: UIImage) -> String? {
+        let fileName = UUID().uuidString + ".jpg"
+        let fileURL = documentsDirectory.appendingPathComponent(fileName)
+
+        if let data = image.jpegData(compressionQuality: 0.8) {
+            do {
+                try data.write(to: fileURL)
+                return fileName
+            } catch {
+                print("Save error: \(error)")
+                return nil
+            }
+        }
+        return nil
+    }
+
+    static func loadImage(fileName: String) -> UIImage? {
+        let fileURL = documentsDirectory.appendingPathComponent(fileName)
+        if let data = try? Data(contentsOf: fileURL) {
+            return UIImage(data: data)
+        }
+        return nil
     }
 }
 
