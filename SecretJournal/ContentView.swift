@@ -9,8 +9,25 @@ import SwiftUI
 import KeychainAccess
 import Combine
 import PhotosUI
+import SwiftData
+
+@Model
+class JournalEntry {
+    var id: UUID = UUID()
+    var title: String
+    var content: String
+    var date: Date = Date()
+    var imageFileName: String?
+
+    init(title: String, content: String, imageFileName: String?) {
+        self.title = title
+        self.content = content
+        self.imageFileName = imageFileName
+    }
+}
 
 struct ContentView: View {
+    @Query(sort: \JournalEntry.date, order: .reverse) var entries: [JournalEntry]
     @State private var isUnlocked = false
     @State var showAddEntry: Bool = false
     var body: some View {
@@ -18,8 +35,26 @@ struct ContentView: View {
             if isUnlocked {
                 TabView {
                     Tab("Journal", systemImage: "book") {
-                        Button("Add entry") {
-                            showAddEntry.toggle()
+                        NavigationStack {
+                            List(entries) { entry in
+                                VStack(alignment: .leading) {
+                                    Text(entry.title).font(.headline)
+                                    Text(entry.content).font(.subheadline).lineLimit(2)
+
+                                    if let fileName = entry.imageFileName,
+                                       let uiImage = ImageManager.loadImage(fileName: fileName) {
+                                        Image(uiImage: uiImage)
+                                            .resizable()
+                                            .scaledToFit()
+                                            .frame(height: 100)
+                                            .cornerRadius(8)
+                                    }
+                                }
+                            }
+                            .navigationTitle("My Journal")
+                            .toolbar {
+                                Button("Add") { showAddEntry.toggle() }
+                            }
                         }
                     }
 
@@ -136,6 +171,8 @@ struct AddEntryView: View {
     @SceneStorage("content") var content = ""
 
     @Environment(\.dismiss) var dismiss
+    @Environment(\.modelContext) private var modelContext
+
     var body: some View {
         NavigationStack {
             Form {
@@ -163,12 +200,18 @@ struct AddEntryView: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Save") {
+                        var savedFileName: String? = nil
                         if let image = selectedImage {
-                            title = ""
-                            content = ""
-                            print(ImageManager.saveImage(image))
-                            dismiss()
+                            savedFileName = ImageManager.saveImage(image)
                         }
+
+                        let newEntry = JournalEntry(title: title, content: content, imageFileName: savedFileName)
+
+                        modelContext.insert(newEntry)
+
+                        title = ""
+                        content = ""
+                        dismiss()
                     }
                 }
             }
@@ -214,5 +257,6 @@ class ImageManager {
 
 #Preview {
     ContentView()
+        .modelContainer(for: JournalEntry.self, inMemory: true)
 }
 
