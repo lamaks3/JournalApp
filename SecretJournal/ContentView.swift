@@ -7,6 +7,7 @@
 
 import SwiftUI
 import KeychainAccess
+import Combine
 
 struct ContentView: View {
     @State private var isUnlocked = false
@@ -18,11 +19,15 @@ struct ContentView: View {
                     }
 
                 Tab("Settings", systemImage: "gear") {
-                    SettingsView()
+                    SettingsView(isUnlocked: $isUnlocked)
                 }
             }
         } else {
-            EnterPinView(isUnlocked: $isUnlocked)
+            if KeychainService().isPINSet() {
+                EnterPinView(isUnlocked: $isUnlocked)
+            } else {
+                CreatePINView(isUnlocked: $isUnlocked)
+            }
         }
 
     }
@@ -31,7 +36,12 @@ struct ContentView: View {
 struct SettingsView: View {
     @AppStorage("username") var username = ""
     @AppStorage("turnBlur") var turnBlur = false
+    @Binding var isUnlocked: Bool
 
+    func resetPassword() {
+        KeychainService().keychain["userPIN"] = nil
+        isUnlocked = false
+    }
     var body: some View {
 
         Form {
@@ -41,6 +51,11 @@ struct SettingsView: View {
             Section(header: Text("App Settigns")) {
                 Toggle(isOn: $turnBlur) {
                     Text("Turn Blur ")
+                }
+            }
+            Section(header: Text("Change Password")) {
+                Button("Reset Password") {
+                    resetPassword()
                 }
             }
         }
@@ -59,9 +74,29 @@ struct EnterPinView: View {
     var body: some View {
         VStack(spacing: 20) {
             Text("Enter your PIN code")
-            TextField("PIN", text: $pinCode)
+            SecureField("PIN", text: $pinCode)
             Button(action: checkPIN) {
                 Text("Check PIN")
+            }
+        }
+    }
+}
+
+struct CreatePINView: View {
+    @State var pinCode = ""
+    @Binding var isUnlocked: Bool
+
+    func setPIN() {
+        KeychainService().setPIN(pinCode)
+        isUnlocked = true
+    }
+
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Create your PIN code")
+            SecureField("PIN", text: $pinCode)
+            Button(action: setPIN) {
+                Text("Set PIN")
             }
         }
     }
@@ -78,8 +113,11 @@ class KeychainService {
         keychain["userPIN"] == pin
     }
 
-    init () {
-        keychain["userPIN"] = "1234"
+    func isPINSet() -> Bool {
+        if let pin = keychain["userPIN"] {
+            return !pin.isEmpty
+        }
+        return false
     }
 }
 
