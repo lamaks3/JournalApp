@@ -9,13 +9,34 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
-            Image(systemName: "globe")
-                .imageScale(.large)
-                .foregroundStyle(.tint)
-            Text("Hello, world!")
+        TabView {
+            Tab("Journal", systemImage: "book") {
+                    Text("asad")
+                }
+
+            Tab("Settings", systemImage: "gear") {
+                SettingsView()
+            }
         }
-        .padding()
+    }
+}
+
+struct SettingsView: View {
+    @AppStorage("username") var username = ""
+    @AppStorage("turnBlur") var turnBlur = false
+
+    var body: some View {
+
+        Form {
+            Section(header: Text("Profile")) {
+                TextField("User Name", text: $username)
+            }
+            Section(header: Text("App Settigns")) {
+                Toggle(isOn: $turnBlur) {
+                    Text("Turn Blur ")
+                }
+            }
+        }
     }
 }
 
